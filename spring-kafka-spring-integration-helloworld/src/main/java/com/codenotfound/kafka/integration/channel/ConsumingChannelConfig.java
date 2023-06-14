@@ -3,6 +3,9 @@ package com.codenotfound.kafka.integration.channel;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.codenotfound.kafka.integration.CloudEventMessageConverter;
+import io.cloudevents.CloudEvent;
+import io.cloudevents.kafka.CloudEventDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,11 +34,11 @@ public class ConsumingChannelConfig {
   }
 
   @Bean
-  public KafkaMessageDrivenChannelAdapter<String, String> kafkaMessageDrivenChannelAdapter() {
-    KafkaMessageDrivenChannelAdapter<String, String> kafkaMessageDrivenChannelAdapter =
+  public KafkaMessageDrivenChannelAdapter<String, CloudEvent> kafkaMessageDrivenChannelAdapter() {
+    KafkaMessageDrivenChannelAdapter<String, CloudEvent> kafkaMessageDrivenChannelAdapter =
         new KafkaMessageDrivenChannelAdapter<>(kafkaListenerContainer());
     kafkaMessageDrivenChannelAdapter.setOutputChannel(consumingChannel());
-
+    kafkaMessageDrivenChannelAdapter.setMessageConverter(new CloudEventMessageConverter("SOME_KEY"));
     return kafkaMessageDrivenChannelAdapter;
   }
 
@@ -47,10 +50,10 @@ public class ConsumingChannelConfig {
 
   @SuppressWarnings("unchecked")
   @Bean
-  public ConcurrentMessageListenerContainer<String, String> kafkaListenerContainer() {
+  public ConcurrentMessageListenerContainer<String, CloudEvent> kafkaListenerContainer() {
     ContainerProperties containerProps = new ContainerProperties(springIntegrationKafkaTopic);
 
-    return (ConcurrentMessageListenerContainer<String, String>) new ConcurrentMessageListenerContainer<>(
+    return (ConcurrentMessageListenerContainer<String, CloudEvent>) new ConcurrentMessageListenerContainer<>(
         consumerFactory(), containerProps);
   }
 
@@ -64,7 +67,7 @@ public class ConsumingChannelConfig {
     Map<String, Object> properties = new HashMap<>();
     properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
     properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, CloudEventDeserializer.class);
     properties.put(ConsumerConfig.GROUP_ID_CONFIG, "spring-integration");
     // automatically reset the offset to the earliest offset
     properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");

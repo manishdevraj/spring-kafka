@@ -2,10 +2,13 @@ package com.codenotfound.kafka.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.cloudevents.CloudEvent;
+import io.cloudevents.core.builder.CloudEventBuilder;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,8 +54,15 @@ public class SpringKafkaIntegrationApplicationTest {
 
     LOGGER.info("sending 10 messages");
     for (int i = 0; i < 10; i++) {
-      GenericMessage<String> message =
-          new GenericMessage<>("Hello Spring Integration Kafka " + i + "!", headers);
+      CloudEvent event = CloudEventBuilder.v1()
+              .withId("hello")
+              .withType("example.kafka")
+              .withSource(URI.create("http://localhost"))
+              .build();
+
+      GenericMessage<CloudEvent> message =
+              new GenericMessage<>(event, headers);
+
       producingChannel.send(message);
       LOGGER.info("sent message='{}'", message);
     }

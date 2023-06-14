@@ -3,6 +3,8 @@ package com.codenotfound.kafka.integration.channel;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.cloudevents.CloudEvent;
+import io.cloudevents.kafka.CloudEventSerializer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,20 +33,19 @@ public class ProducingChannelConfig {
   @Bean
   @ServiceActivator(inputChannel = "producingChannel")
   public MessageHandler kafkaMessageHandler() {
-    KafkaProducerMessageHandler<String, String> handler =
+    KafkaProducerMessageHandler<String, CloudEvent> handler =
         new KafkaProducerMessageHandler<>(kafkaTemplate());
     handler.setMessageKeyExpression(new LiteralExpression("kafka-integration"));
-
     return handler;
   }
 
   @Bean
-  public KafkaTemplate<String, String> kafkaTemplate() {
+  public KafkaTemplate<String, CloudEvent> kafkaTemplate() {
     return new KafkaTemplate<>(producerFactory());
   }
 
   @Bean
-  public ProducerFactory<String, String> producerFactory() {
+  public ProducerFactory<String, CloudEvent> producerFactory() {
     return new DefaultKafkaProducerFactory<>(producerConfigs());
   }
 
@@ -53,7 +54,7 @@ public class ProducingChannelConfig {
     Map<String, Object> properties = new HashMap<>();
     properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
     properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-    properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, CloudEventSerializer.class);
     // introduce a delay on the send to allow more messages to accumulate
     properties.put(ProducerConfig.LINGER_MS_CONFIG, 1);
 
