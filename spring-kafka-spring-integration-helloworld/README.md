@@ -4,4 +4,6 @@
 
 A detailed step-by-step tutorial on how to connect Apache Kafka to a Spring Integration Channel using Spring Kafka and Spring Boot.
 
+![alt text](src/main/resources/spring-integration-architecture.png)
+
 [https://www.codenotfound.com/spring-kafka-spring-integration-example.html](https://www.codenotfound.com/spring-kafka-spring-integration-example.html)
